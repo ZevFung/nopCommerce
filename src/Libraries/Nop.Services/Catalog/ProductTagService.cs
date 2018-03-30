@@ -5,6 +5,7 @@ using Nop.Core.Caching;
 using Nop.Core.Data;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Stores;
 using Nop.Core.Extensions;
 using Nop.Data;
@@ -38,6 +39,7 @@ namespace Nop.Services.Catalog
 
         private readonly IRepository<ProductTag> _productTagRepository;
         private readonly IRepository<StoreMapping> _storeMappingRepository;
+        private readonly IRepository<LocalizedProperty> _localizedPropertyRepository;
         private readonly IDataProvider _dataProvider;
         private readonly IDbContext _dbContext;
         private readonly CommonSettings _commonSettings;
@@ -54,6 +56,7 @@ namespace Nop.Services.Catalog
         /// Ctor
         /// </summary>
         /// <param name="productTagRepository">Product tag repository</param>
+        /// <param name="localizedPropertyRepository">Localized property repository</param>
         /// <param name="dataProvider">Data provider</param>
         /// <param name="dbContext">Database Context</param>
         /// <param name="commonSettings">Common settings</param>
@@ -64,6 +67,7 @@ namespace Nop.Services.Catalog
         /// <param name="productService">Product service</param>
         public ProductTagService(IRepository<ProductTag> productTagRepository,
             IRepository<StoreMapping> storeMappingRepository,
+            IRepository<LocalizedProperty> localizedPropertyRepository,
             IDataProvider dataProvider,
             IDbContext dbContext,
             CommonSettings commonSettings,
@@ -74,6 +78,7 @@ namespace Nop.Services.Catalog
         {
             this._productTagRepository = productTagRepository;
             this._storeMappingRepository = storeMappingRepository;
+            this._localizedPropertyRepository = localizedPropertyRepository;
             this._dataProvider = dataProvider;
             this._dbContext = dbContext;
             this._commonSettings = commonSettings;
@@ -199,6 +204,30 @@ namespace Nop.Services.Catalog
 
             var productTag = query.FirstOrDefault();
             return productTag;
+        }
+
+        /// <summary>
+        /// Gets product tag by localized name
+        /// </summary>
+        /// <param name="localizedName">localized product tag name</param>
+        /// <returns>Product tag</returns>
+        public virtual ProductTag GetProductTagByLocalizedName(string localizedName)
+        {
+            ProductTag productTag;
+
+            var query = from lp in _localizedPropertyRepository.Table
+                where lp.LocaleKeyGroup == typeof(ProductTag).Name
+                      && lp.LocaleKey == nameof(productTag.Name)
+                      && lp.LocaleValue == localizedName
+                select lp;
+
+            var ptQuery = from pt in _productTagRepository.Table
+                join lp in query on pt.Id equals lp.EntityId into lpr
+                from lp in lpr.DefaultIfEmpty()
+                where lp.EntityId==pt.Id
+                select pt;
+
+            return ptQuery.FirstOrDefault() ?? GetProductTagByName(localizedName);
         }
 
         /// <summary>

@@ -60,5 +60,12 @@ namespace Nop.Services.Catalog
         /// <param name="product">Product for update</param>
         /// <param name="productTags">Product tags</param>
         void UpdateProductTags(Product product, string[] productTags);
+
+        /// <summary>
+        /// Gets product tag by localized name
+        /// </summary>
+        /// <param name="localizedName">localized product tag name</param>
+        /// <returns>Product tag</returns>
+        ProductTag GetProductTagByLocalizedName(string localizedName);
     }
 }

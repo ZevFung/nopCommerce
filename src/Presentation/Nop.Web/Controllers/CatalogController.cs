@@ -229,13 +229,14 @@ namespace Nop.Web.Controllers
         #region Product tags
         
         [HttpsRequirement(SslRequirement.No)]
-        public virtual IActionResult ProductsByTag(int productTagId, CatalogPagingFilteringModel command)
+        public virtual IActionResult ProductsByTag(string seName, CatalogPagingFilteringModel command)
         {
-            var productTag = _productTagService.GetProductTagById(productTagId);
+            var productTag = _productTagService.GetProductTagByLocalizedName(seName);
             if (productTag == null)
                 return InvokeHttp404();
 
             var model = _catalogModelFactory.PrepareProductsByTagModel(productTag, command);
+            model.TagName = seName;
             return View(model);
         }
 
